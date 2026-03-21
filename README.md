@@ -36,6 +36,8 @@ Created by OneCircuit and Gemini for the maker community. This project focuses o
 * **Blog:** [OneCircuit Blog](https://onecircuit.blogspot.com/)
 * **GitHub:** [OneCircuit Repositories](https://github.com/bovineck/)
 
+---
+
 ## ⚖️ License
 
 This project is licensed under the **MIT License**. 
@@ -43,5 +45,4 @@ This project is licensed under the **MIT License**.
 *Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files...* (See the LICENSE file for full details).
 
 ---
-**Developed by [OneCircuit](https://onecircuit.blogspot.com/)**
-[YouTube](https://www.youtube.com/@onecircuit-as) | [GitHub](https://github.com/bovineck/)
+
