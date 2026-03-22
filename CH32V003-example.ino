@@ -8,10 +8,16 @@ Github: https://github.com/bovineck/
 
 const uint8_t LedArray[] = { PD4, PC4, PC3, PC2, PC1, PC0, PA2, PA1 };
 const uint8_t sizeArray = 8;
-uint8_t timeDelay = 150;
-uint8_t breatheSpeed = 2;
+const int timeDelay = 300;
+const uint8_t breatheSpeed = 2;
+const int filterFactor = 6;  // to dampen the sound readings
 int dampenedVolume = 0;
-const int filterFactor = 10;
+
+// VU Meter Tuning
+const int MIC_FLOOR = 50;     // Ignore noise below this level
+const int MIC_CEILING = 450;  // Full scale (all LEDs on) at this level
+const int micRange = MIC_CEILING-MIC_FLOOR;
+const uint8_t LED_COUNT = 8;  // Total number of LEDs
 
 void initialise_pins(int timing) {
   for (int mypins = 0; mypins < sizeArray; mypins++) {
@@ -26,15 +32,11 @@ void twinkle(int durationMillis) {
   unsigned long start = millis();
 
   while (millis() - start < durationMillis) {
-    // 1. Pick a random LED
     int ledA = random(0, sizeArray);
-
-    // 2. Randomize the "On" profile
     int peak = random(40, 180);  // Random max brightness (out of 255)
     int speed = random(1, 5);    // Random increment (1 = slow, 5 = fast)
     int timing = random(5, 12);  // Random pulse width multiplier
 
-    // 3. Fade Up
     for (int duty = 0; duty < peak; duty += speed) {
       digitalWrite(LedArray[ledA], HIGH);
       delayMicroseconds(duty * timing);
@@ -42,16 +44,13 @@ void twinkle(int durationMillis) {
       delayMicroseconds((peak - duty) * timing);
     }
 
-    // 4. Fade Down
     for (int duty = peak; duty > 0; duty -= speed) {
       digitalWrite(LedArray[ledA], HIGH);
       delayMicroseconds(duty * timing);
       digitalWrite(LedArray[ledA], LOW);
       delayMicroseconds((peak - duty) * timing);
     }
-
-    // 5. Random pause before the next star appears
-    delay(random(50, 300));
+    delay(random(50, timeDelay));
   }
 }
 
@@ -64,8 +63,8 @@ void setup() {
 
 void loop() {
   Serial.println(F("Blinken de lights"));
-  initialise_pins(300);
-  delay(500);
+  initialise_pins(timeDelay);
+  delay(timeDelay);
   Serial.println(F("Faden de lights"));
 
   // Fade Up
@@ -84,47 +83,35 @@ void loop() {
       delayMicroseconds((255 - duty) * 2);
     }
   }
-  delay(500);
+  delay(timeDelay);
   Serial.println(F("All de lights Faden"));
 
-  // Fade Up
-  for (int duty = 0; duty < 255; duty++) {
-    for (int times = 0; times < breatheSpeed; times++) {  // The "Slow Down" Loop
-      for (int i = 0; i < sizeArray; i++) digitalWrite(LedArray[i], HIGH);
-      delayMicroseconds(duty * 10);
-
-      for (int i = 0; i < sizeArray; i++) digitalWrite(LedArray[i], LOW);
-      delayMicroseconds((255 - duty) * 10);
+  for (int direction = 0; direction < 2; direction++) {
+    for (int dutyCycle = 0; dutyCycle < 255; dutyCycle++) {
+      int duty = (direction == 0) ? dutyCycle : (255 - dutyCycle);
+      for (int times = 0; times < breatheSpeed; times++) {
+        for (int i = 0; i < sizeArray; i++) digitalWrite(LedArray[i], HIGH);
+        delayMicroseconds(duty * 10);
+        for (int i = 0; i < sizeArray; i++) digitalWrite(LedArray[i], LOW);
+        delayMicroseconds((255 - duty) * 10);
+      }
     }
   }
 
-  // Fade Down
-  for (int duty = 255; duty > 0; duty--) {
-    for (int times = 0; times < breatheSpeed; times++) {
-      for (int i = 0; i < sizeArray; i++) digitalWrite(LedArray[i], HIGH);
-      delayMicroseconds(duty * 10);
-
-      for (int i = 0; i < sizeArray; i++) digitalWrite(LedArray[i], LOW);
-      delayMicroseconds((255 - duty) * 10);
-    }
-  }
-  delay(500);
+  delay(timeDelay);
   Serial.println(F("Twinklen de lights"));
-  twinkle(6000);
-  delay(500);
+  twinkle(20 * timeDelay);
+  delay(timeDelay);
 
-while (1) {
+  while (1) {
     int rawVolume = analogRead(A4);
-    dampenedVolume = ((dampenedVolume * 122) + (rawVolume * 6)) >> 7; // >> 7 is the same as / 128
-
-    int response = (dampenedVolume - 50) * 9 / 650;
+    dampenedVolume = ((dampenedVolume * (128 - filterFactor)) + (rawVolume * filterFactor)) >> 7;
+    int response = (dampenedVolume - MIC_FLOOR) * (LED_COUNT + 1) / micRange;
     if (response < 0) response = 0;
     if (response > sizeArray) response = sizeArray;
-
     for (uint8_t i = 0; i < sizeArray; i++) {
-      digitalWrite(LedArray[i], (i < response)); 
+      digitalWrite(LedArray[i], (i < response));
     }
-
     delay(10);
   }
 }
