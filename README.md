@@ -12,7 +12,7 @@ An advanced lighting controller for the ultra-low-cost WCH CH32V003 RISC-V micro
 ## 🛠 Hardware & Resources
 
 * **MCU:** WCH CH32V003 (RISC-V @ 24MHz, 16KB Flash, 2KB RAM).
-* **Core:** [OpenWCH Arduino CH32](https://github.com/openwch/arduino-wch32v003)
+* **Core:** [OpenWCH Arduino CH32](https://github.com/openwch/ch32v003)
 * **Datasheet:** [WCH CH32V003 Official Datasheet (PDF)](https://www.wch-ic.com/downloads/CH32V003DS0_PDF.html)
 * **Input:** Analog Microphone Module (connected to Pin A4 / PA4).
 * **Output:** 8x LEDs connected to the defined `LedArray`.
